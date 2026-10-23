@@ -234,6 +234,71 @@ On Linux systems, local services usually will communicate over the network ports
 
 ```test.rb Kernel eval "puts File.read('/proc/net/tcp')"```
 
+This is essentially the same command we did prior in our test command but instead of putting "1" in the puts command we will put the ```file.read('/proc/net/tcp')"``` command. This tells the script to read all files that reside in the directory /proc/net/tcp. After inputting the command and letting it execute, you should see the following:
+
+<img width="958" height="1015" alt="Screenshot From 2026-10-23 18-02-01" src="https://github.com/user-attachments/assets/989e2de1-c4be-4731-8711-cce99bf5c043" />
+
+This may look like a giant wall of gibberish but if you know what you are looking for this is extremely useful. Looking at the image, we see a ton of hexadecimal data. This data represents every active and listening socket on the system. Although Linux stores these ports in a specific format we will have to decipher and we need to manually decode. The bottom two ports represented with a "2" in this list are our active connections, which are not useful to us as we are looking for a port we are not currently connected to. Our active connections can also be signified by the "01" in the middle of the hexadecimal data. 
+
+The main ports we are in most interest of is the ports which have the hexadecimal data reading as "0100007F". This translates from hexadecimal to 127.0.0.1, or our localhost. The "0A" means the port is currently open. As we can see in the list we have currently, there is a ton of open ports ready to receive our connection! Let's try each one and see which ones work by attempting to connect to them via netcat!
+
+<img width="958" height="183" alt="Screenshot From 2026-10-23 18-15-42" src="https://github.com/user-attachments/assets/cc4114e2-1ffc-4b7b-b2a7-790269e6f1d9" />
+
+Of course netcat is blocked why wouldn't it be. That's no worry though we still have a way to get netcat working in our terminal. We need to resort back to using the vulnerable Ruby script we talked about prior first to spawn a new shell that we can exploit. We can do this by inputting the following command:
+
+```test.rb Kernel 'system' "/bin/zsh"```
+
+This command will spawn us a new shell via the /bin/zsh directory. We need this new shell because of the way our current shell is restricted, as we are unable to do commands we need to execute such as ```nc``` in the restricted shell, meaning we must spawn a new shell. This will make a separate process and launch a new shell for us. Of course the zsh still takes over the new shell as it is what the shell is built from but the rzsh, or restricted Z shell's, restrictions are alleviated from our new shell. Once we are in this shell we are no longer restricted by the rzsh's parser, meaning we can do the next command to finally acquire netcat in this shell. Remember prior to spawning this new shell we were unable to do such a command as listed below:
+
+```export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin```
+
+When you type a command like ```nc``` into your terminal, the shell doesn't automatically know where that program resides on your system. Instead, it will rely on the environmental variable we know as $PATH. The $PATH variable is essentially a list of directories separated by semicolons. The restricted shell we had prior had overwritten this essential system to only point to the directory /home/noraj. Our solution to this problem in our new shell is to overwrite this $PATH variable with a new $PATH variable. Because /usr/bin and /bin contain all the standard Linux binaries, which include ```cat```,```ls```,```bash```, and especially so our ```nc``` command, the shell can all of a sudden read them and execute the said commands! Now that we corrected the system to finally be able to read the standard Linux binaries, let's attempt to run netcat again! 
+
+<img width="958" height="142" alt="Screenshot From 2026-10-23 18-44-52" src="https://github.com/user-attachments/assets/65075730-acda-41ec-805e-2aa09ccc0fd2" />
+
+The command worked and we are in a new shell, although this one is a bit odd. When I input the ```whoami``` command as listed in the image above, the terminal tells us:
+
+"undefined local variable or method 'whoami' for main:Object"
+
+This text is extremely important into understanding where we are, as this comment only displays when you are in a Ruby REPL shell, or in other words a Ruby Read-Eval-Print Loop shell. A REPL is an interactive console which executes code line by line. This is huge! If we input the correct command, we can read the root flag! We need to remember as well that since we are in a Ruby shell we can only use Ruby syntax for our commands. With that being said, input the following command:
+
+```%x{cp /bin/bash /tmp/bash; chmod +s /tmp/bash}```
+
+Let's do a deep dive on what each part of this command so we can fully grasp it:
+
+```%x{}```: This is what is called a "parser bypass" for our situation. In Ruby, "%x" is a notation that tells the interpreter to execute the contents inside the brackets as a shell command. It's the Ruby equivalent of using back ticks for a command. (`)
+
+```cp /bin/bash /tmp/bash```:This part of the command will use the ```cp``` command to copy the standard Bash shell binaries into the /tmp/bash directory, and names the new file the binaries reside in "bash". Because we are executing this inside the Ruby REPL, the newly coped /tmp/bash file will now be owned by the root user meaning we can use regular linux commands as root now!
+
+```;```:This just tells the shell to finish up the command on the left and then proceed with the right command immediately, simple enough.
+
+```chmod +s /tmp/bash```:This will change the file permissions of the file we just created /tmp/bash. The ```+s``` section of the command will set the SUID bit on the file we just created. This is the most important part of the command as it tells the kernel whenever somebody executes this file, run it with the root user's privileges and not the actual user's permissions that had ran it.
+
+Now that we ran that command all our work in the Ruby REPL is done and we can close the shell and go back to our restricted shell. After you are back in the restricted shell you can now spawn the root shell using the directory you just created in /tmp! We can do this by executing the command:
+
+```/tmp/bash -p```
+
+All this command does is first, executes the file we just created in /tmp, that being "bash", and then when the system attempts to bring us back down to our standard permissions for security permissions, the ```-p``` flag forces it to mantain the root permissions we acquired. After inputting this command you should see the following in your terminal:
+
+<img width="958" height="175" alt="Screenshot From 2026-10-23 19-08-26" src="https://github.com/user-attachments/assets/7e5fd033-a545-4463-a454-dc43a6b77cf6" />
+
+We have officially became the root user and accomplished privilege escalation like we had been talking about prior! Now the only thing we have left to do it read the root.txt file and acquire the flag. We already know the file resides within the root directory so we can retrieve it by executing the following command in our terminal:
+
+```cat /root/root.txt```
+
+After reading the file with cat, you should see the following in your terminal:
+
+<img width="958" height="115" alt="FINALFLAGOBFSC" src="https://github.com/user-attachments/assets/77ca6a0f-e024-4e5e-b035-0111a7f53c8d" />
+
+We found the last flag and we completed the room! Thank you for following along with me through this room and have a great day!
+
+
+
+
+
+
+
+
 
 
 
