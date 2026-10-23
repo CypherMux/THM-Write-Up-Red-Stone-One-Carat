@@ -290,7 +290,11 @@ After reading the file with cat, you should see the following in your terminal:
 
 <img width="958" height="115" alt="FINALFLAGOBFSC" src="https://github.com/user-attachments/assets/77ca6a0f-e024-4e5e-b035-0111a7f53c8d" />
 
-We found the last flag and we completed the room! Thank you for following along with me through this room and have a great day!
+We found the last flag and we completed the room! Thank you for following along with me and great job! Have a great day!
+
+<img width="384" height="480" alt="giphy" src="https://github.com/user-attachments/assets/29e56fdb-6585-4a5e-a2ac-d666a4d8c7c1" />
+
+
 
 
 
