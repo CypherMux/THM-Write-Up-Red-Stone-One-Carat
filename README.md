@@ -290,6 +290,33 @@ After reading the file with cat, you should see the following in your terminal:
 
 <img width="958" height="115" alt="FINALFLAGOBFSC" src="https://github.com/user-attachments/assets/77ca6a0f-e024-4e5e-b035-0111a7f53c8d" />
 
+What we learnt
+--------------
+
+Bypassing restricted shells: We learned that the rzsh, or restricted Z shell, is only as strong as the binaries in which it allows. BY using our built in shell commands such as ```echo``` and input redirection like ```$(<file)``` we were able to read the files we needed to find without ever using a blocked binary such as ```cat```.
+
+The power of Zsh modules: Discovering that we were in a Z shell was huge as we could use its built in ```zmodload``` command. Loading modules like ```zsh/mapfile``` with such a command allowed us to read the source code of our test.rb file directly from the shell's memory. Doing this completely bypassed the shell's block list which was hindering us so much.
+
+Reading Hexadecimal data to discover hidden services: Instead of relying on a blocked tool such as ```netstat```, we manually parsed /proc/net/tcp. This enabled us to find the hexadecimal data for each port and decode it in order to find the open port with our local service on it. This is where we found our hidden root owned service.
+
+String Delimiter Bypasses: When the restricted Z shell blocked standard quotes and slashes in our payloads, we had to instead use Ruby's alternative string delimiters, such as ```%x{}```, to execute system commands without triggering the "Forbidden Character" filter present in the shell.
+
+Remediation
+-----------
+
+It is great to know how to attack a machine like this, but is even better to know the other as well such as the defenses we can put in place to defend against such attacks. The ways we can do this are as follows:
+
+Fixing the Ruby script: The test.rb script should have never used ```.constantize``` or ```.send``` on unvalidated user input to begin with. If specific commands such as these do need to run, the developer should use a strict allowlist rather than dynamic method calls.
+
+Securing the local services: The Ruby REPL running on port 31547 was the most critical vulnerability in this room and allowed us to obtain root access through arbitrary code execution. To prevent this local services should run under a dedicated low privilege account and said port should never expose a raw Ruby REPL. (The Principle of Least Privilege)
+
+SUID Escalation: The final step of this room relied on copying the /bin/bash binaries to the /tmp directory and setting the SUID bit. To prevent such an attack, system admins should mount the /tmp directory with the ```nosuid``` flag in /etc/fstab. This will prevent any SUID binaries from being executed out of /tmp, which in turn will completely neutralize any privilege escalation path using this method.
+
+Hardening the Shell: While this restricted shell was pretty well configured, it still left ```zmodload``` exposed. If the environment running does not necessarily need Zsh modules, they should be disabled in the shell configuration to prevent loading modules which can lead to privilege escalation opportunities for an attacker.
+
+Thank You
+----------
+
 We found the last flag and we completed the room! Thank you for following along with me and great job! Have a great day!
 
 <img width="384" height="480" alt="giphy" src="https://github.com/user-attachments/assets/29e56fdb-6585-4a5e-a2ac-d666a4d8c7c1" />
