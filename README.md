@@ -1,7 +1,7 @@
 # THM-Write-Up-Red-Stone-One-Carat
 
 -------------------------------------
-Hello everybody this will be a write up and walkthrough the room "Red Stone One Carat" on TryHackMe, the first room of the Red stone series. This room requires basic knowledge of the scripting language Ruby in order to fully grasp and work your way through the room so I heavily recommend to at least cover the basics of the language before we continue. I will explain each process in depth and why it works the way it works but if you do want a refresher on Ruby, which honestly I recommend to even grasp this room, here is a link to a beginner level guide:
+Hello everybody this will be a write up and walkthrough of the room "Red Stone One Carat" on TryHackMe, the first room of the Red stone series. This room requires basic knowledge of the scripting language Ruby in order to fully grasp and work your way through the room so I heavily recommend to at least cover the basics of the language before we continue. I will explain each process in depth and why it works the way it works but if you do want a refresher on Ruby, which honestly I recommend to even grasp this room, here is a link to a beginner level guide:
 
 https://www.ruby-lang.org/en/documentation/quickstart/4/
 
